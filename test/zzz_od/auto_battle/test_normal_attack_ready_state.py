@@ -11,6 +11,8 @@ from unittest.mock import MagicMock, patch
 
 import numpy as np
 
+from one_dragon.base.geometry.rectangle import Rect
+from one_dragon.base.screen.screen_area import ScreenArea
 from zzz_od.auto_battle.auto_battle_context import AutoBattleContext
 from zzz_od.auto_battle.auto_battle_state import BattleStateEnum
 
@@ -19,6 +21,11 @@ def _make_ctx() -> MagicMock:
     """mock ctx(AutoBattleContext.__init__ 只读取属性,MagicMock 足够)。"""
     ctx = MagicMock()
     ctx.project_config.screen_standard_width = 1920
+    # 按键禁用灰度匹配默认不命中,避免 MagicMock 结果被当作禁用态
+    no_match = MagicMock()
+    no_match.max = None
+    ctx.tm.match_template.return_value = no_match
+    ctx.tm.debug_trace_bus = None
     return ctx
 
 
@@ -28,6 +35,9 @@ def _make_auto_battle_context() -> AutoBattleContext:
     abc.dodge_context = MagicMock()
     abc.agent_context = MagicMock()
     abc.target_context = MagicMock()
+    # check_battle_state 的按键禁用检测需要识别区域;给空区域让禁用匹配返回不命中
+    abc.area_btn_normal = ScreenArea(area_name='按键-普通攻击', pc_rect=Rect(1403, 916, 1505, 1017))
+    abc.area_btn_ultimate = ScreenArea(area_name='按键-终结技', pc_rect=Rect(1615, 815, 1715, 915))
     return abc
 
 
